@@ -20,7 +20,9 @@
 </template>
 
 <script>
-	export default {
+	import {postRequest} from "../utils/api";
+
+  export default {
 		name:"Login",
 		
 		data(){
@@ -58,7 +60,9 @@
 			submitLogin(){
 				this.$refs.loginForm.validate((valid) => {
 				  if (valid) { 
-					alert('submit!');
+					postRequest('/login', this.loginForm).then(resp => {
+						this.$router.replace('/home');
+					})
 				  } else {
 					this.$message.error('请输入全部字段');
 					return false;
