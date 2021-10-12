@@ -13,6 +13,6 @@ func CollectRouter(r *gin.Engine) *gin.Engine {
 		controllers.Captcha(c, 4)
 	})
 	r.POST("/v1/register", controllers.Register)
-	//r.POST("/v1/login", controller.Login)
+	r.POST("/v1/login", controllers.Login)
 	return r
 }
