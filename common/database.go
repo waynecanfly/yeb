@@ -39,3 +39,7 @@ func InitDB() *gorm.DB {
 	DB = db
 	return db
 }
+
+func GetDB() *gorm.DB {
+	return DB
+}
