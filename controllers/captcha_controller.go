@@ -15,11 +15,9 @@ func Session(keyPairs string) gin.HandlerFunc {
 	store := SessionConfig()
 	return sessions.Sessions(keyPairs, store)
 }
-
-
 func SessionConfig() sessions.Store {
 	sessionMaxAge := 3600
-	sessionSecret := "hanyun"
+	sessionSecret := "topgoer"
 	var store sessions.Store
 	store = cookie.NewStore([]byte(sessionSecret))
 	store.Options(sessions.Options{
@@ -29,7 +27,24 @@ func SessionConfig() sessions.Store {
 	return store
 }
 
-// CaptchaVerify 验证图片验证码
+func Captcha(c *gin.Context, length ...int) {
+	l := captcha.DefaultLen
+	w, h := 107, 36
+	if len(length) == 1 {
+		l = length[0]
+	}
+	if len(length) == 2 {
+		w = length[1]
+	}
+	if len(length) == 3 {
+		h = length[2]
+	}
+	captchaId := captcha.NewLen(l)
+	session := sessions.Default(c)
+	session.Set("captcha", captchaId)
+	_ = session.Save()
+	_ = Serve(c.Writer, c.Request, captchaId, ".png", "zh", false, w, h)
+}
 func CaptchaVerify(c *gin.Context, code string) bool {
 	session := sessions.Default(c)
 	if captchaId := session.Get("captcha"); captchaId != nil {
@@ -44,29 +59,10 @@ func CaptchaVerify(c *gin.Context, code string) bool {
 		return false
 	}
 }
-
-// Captcha 图片验证码
-func Captcha(c *gin.Context, length ...int) {
-	l := captcha.DefaultLen
-	w, h := 107, 36
-	if len(length) == 1 {
-		l = length[0]
-	}
-	if len(length) == 2 {
-		w = length[1]
-	}
-	if len(length) == 3 {
-		h = length[2]
-	}
-	captchaId := captcha.NewLen(l)
-	_ = Serve(c.Writer, c.Request, captchaId, ".png", "zh", false, w, h)
-}
-
 func Serve(w http.ResponseWriter, r *http.Request, id, ext, lang string, download bool, width, height int) error {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-
 
 	var content bytes.Buffer
 	switch ext {
@@ -79,7 +75,6 @@ func Serve(w http.ResponseWriter, r *http.Request, id, ext, lang string, downloa
 	default:
 		return captcha.ErrNotFound
 	}
-
 
 	if download {
 		w.Header().Set("Content-Type", "application/octet-stream")
