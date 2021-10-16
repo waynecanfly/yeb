@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -63,18 +64,22 @@ func Register(c *gin.Context){
 
 func Login(c *gin.Context)  {
 	DB := common.GetDB()
-	requestUser := model.User{}
-	err := c.ShouldBind(&requestUser)
-	if err != nil {
-		panic(err)
+	//获取参数
+	json := make(map[string]interface{})
+	c.BindJSON(&json)
+	name := json["username"]
+	pwd := json["password"]
+	code := json["code"]
+	if CaptchaVerify(c, code.(string)) != true {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code": 422,
+			"msg":  "验证码验证失败，请重新输入",
+		})
+		return
 	}
-	//获取参数
-	//获取参数
-	name := requestUser.Name
-	pwd := requestUser.Pwd
-
+	fmt.Println(code)
 	//数据验证
-	if len(pwd) < 6 {
+	if len(pwd.(string)) < 6 {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code": 422,
 			"msg":  "密码不能少于6位",
@@ -92,7 +97,7 @@ func Login(c *gin.Context)  {
 		})
 	}
 	//判断密码是否正确
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Pwd), []byte(pwd)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Pwd), []byte(pwd.(string))); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code": 400,
 			"msg":  "wrong password",
