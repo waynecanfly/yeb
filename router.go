@@ -8,6 +8,7 @@ import (
 
 
 func CollectRouter(r *gin.Engine) *gin.Engine {
+	r.Use(controllers.Session("topgoer"))
 	//r.Use(middleware.CORSMiddleware())
 	r.GET("v1/captcha", func(c *gin.Context) {
 		controllers.Captcha(c, 4)
